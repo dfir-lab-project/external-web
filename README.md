@@ -1,675 +1,1034 @@
-# Stock & Warehouse Inventory Management System - Next.js, TypeScript, Prisma, MongoDB FullStack Project (including Business-Insights & Admin Panel, Client, Supplier Role-based Dashboard)
+# Stockly Internal Web Service Deployment Guide
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6.4-2D3748)](https://www.prisma.io/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)](https://tailwindcss.com/)
+이 문서는 팀원이 새 Ubuntu Server VM을 올린 뒤 GitHub에서 이 프로젝트를 `git clone`하여 Internal Server Zone 안에서 `WAS01`과 `DB01` 구성을 재현하기 위한 가이드입니다.
 
-A full-stack warehouse and stock inventory management system built with Next.js, React, Prisma, and MongoDB. It helps store owners, suppliers, and clients manage products, orders, invoices, warehouses, and support tickets with role-based access, analytics dashboards, QR codes, payments (Stripe), shipping (Shippo), and email (Brevo). This README is written for learning, reuse, and deployment—with project structure, API reference, environment setup, and usage walkthroughs.
+대상 프로젝트는 `Next.js 15`, `React 19`, `Prisma`, `MongoDB` 기반의 재고 관리 웹서비스입니다. React, Next.js, Prisma 같은 Node 패키지는 직접 하나씩 설치하지 않고, 프로젝트 루트에서 `npm install`을 실행하면 `package-lock.json`에 기록된 버전으로 설치됩니다.
 
-- **Live Demo:** [https://stockly-inventory.vercel.app/](https://stockly-inventory.vercel.app/)
-
-![Screenshot 2026-03-07 at 12 15 24](https://github.com/user-attachments/assets/67518003-8e10-4c71-b682-911506173cdf)
-![Screenshot 2026-03-07 at 12 16 27](https://github.com/user-attachments/assets/f00d8441-4c1c-467d-b9fa-f5505a48feb0)
-![Screenshot 2026-03-07 at 12 16 46](https://github.com/user-attachments/assets/64b0dd00-126f-4740-9ab4-fb2a8bc5fca5)
-![Screenshot 2026-03-07 at 12 16 58](https://github.com/user-attachments/assets/6f617e37-934c-484f-a554-11e5db02a53f)
-![Screenshot 2026-03-07 at 12 17 07](https://github.com/user-attachments/assets/68418911-c445-4e49-8167-77715ea6a4d1)
-![Screenshot 2026-03-07 at 12 17 20](https://github.com/user-attachments/assets/95e1c857-3663-46e5-b7fa-1da051a88392)
-![Screenshot 2026-03-07 at 12 17 28](https://github.com/user-attachments/assets/9b03b936-6748-40f9-b30c-abcb8534e543)
-![Screenshot 2026-03-07 at 12 17 41](https://github.com/user-attachments/assets/d8403bf0-965f-4e8b-936c-dbff3b4f0b53)
-![Screenshot 2026-03-07 at 12 18 19](https://github.com/user-attachments/assets/3d9e9c99-43a9-43a6-9580-87084ace7aea)
-![Screenshot 2026-03-07 at 12 18 28](https://github.com/user-attachments/assets/af509a48-0178-483e-8e36-20855570fd28)
-![Screenshot 2026-03-07 at 12 18 39](https://github.com/user-attachments/assets/281193e0-c15a-4675-b163-5142da066fde)
-![Screenshot 2026-03-07 at 12 18 54](https://github.com/user-attachments/assets/33bf5fc3-95a4-4343-9978-bf59c4507a3c)
-![Screenshot 2026-03-07 at 12 19 05](https://github.com/user-attachments/assets/51442c1e-894c-41aa-8b81-a2efea8ae844)
-![Screenshot 2026-03-07 at 12 19 20](https://github.com/user-attachments/assets/ce686e12-2a28-4207-9a0e-fb68fff45420)
-![Screenshot 2026-03-07 at 12 19 36](https://github.com/user-attachments/assets/67fcce8c-c674-4a29-bb1b-eec1603e47ae)
-![Screenshot 2026-03-07 at 12 19 44](https://github.com/user-attachments/assets/6a828ce8-3483-42cd-9790-23c83ba27515)
-![Screenshot 2026-03-07 at 12 19 55](https://github.com/user-attachments/assets/3957ffb5-cd2c-452a-b4e3-7388ea76c874)
-![Screenshot 2026-03-07 at 12 20 03](https://github.com/user-attachments/assets/d2b95ede-4100-498f-9900-a581969f8ba3)
-![Screenshot 2026-03-07 at 12 20 30](https://github.com/user-attachments/assets/f7253b40-2e9c-4786-b264-175202d8ee7d)
-![Screenshot 2026-03-07 at 12 20 39](https://github.com/user-attachments/assets/14c29c77-0ee8-489b-bf99-f4ea43935395)
-![Screenshot 2026-03-07 at 12 20 48](https://github.com/user-attachments/assets/e74645f6-29f7-4960-8833-4af6d36e7580)
-![Screenshot 2026-03-07 at 12 20 57](https://github.com/user-attachments/assets/8206a920-3a68-4937-a71a-3450729a560c)
-![Screenshot 2026-03-07 at 12 21 20](https://github.com/user-attachments/assets/92152502-7fac-431f-ae98-607099981262)
-![Screenshot 2026-03-07 at 12 21 53](https://github.com/user-attachments/assets/2c2e6398-c019-4ac3-acda-9f7f02214e55)
-![Screenshot 2026-03-07 at 12 22 06](https://github.com/user-attachments/assets/fa2e0942-86a2-4e18-8062-52bea4a26b26)
-![Screenshot 2026-03-07 at 12 22 24](https://github.com/user-attachments/assets/1db9c3ca-1e44-414e-a7d6-cc17ad4f210a)
-![Screenshot 2026-03-07 at 12 22 44](https://github.com/user-attachments/assets/4c7dbf4d-2c41-496b-83d8-1c873512b098)
-![Screenshot 2026-03-07 at 12 23 06](https://github.com/user-attachments/assets/ba0b10dc-359b-457b-8f68-65b93d1b8d47)
-
-## Table of Contents
-
-- [Project Overview](#project-overview)
-- [Features & Functionality](#features--functionality)
-- [Technology Stack](#technology-stack)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [Application Routes](#application-routes)
-- [API Endpoints](#api-endpoints)
-- [Backend & Database](#backend--database)
-- [Key Components & Reuse](#key-components--reuse)
-- [Keywords](#keywords)
-- [License](#license)
-- [Happy Coding](#happy-coding)
-
----
-
-## Project Overview
-
-Stockly is a **role-based inventory and order management platform**. It supports three roles:
-
-- **Admin (store owner):** Full access to products, categories, suppliers, warehouses, orders, invoices, analytics, user management, support tickets, and client/supplier portal views.
-- **Supplier:** Own products, orders containing their products, revenue, and support tickets.
-- **Client:** Browse catalog, place orders, view invoices, pay via Stripe, and open support tickets.
-
-The app uses **Next.js 16 App Router**, **Prisma** with **MongoDB**, **JWT** auth, **TanStack Query** for server state, **shadcn/ui** + **Tailwind** for UI, and optional integrations: **Stripe** (payments), **Shippo** (shipping), **Brevo** (email), **ImageKit** (images), **Upstash Redis** (cache), **Sentry** (monitoring), and **OpenRouter** (AI insights). All features are designed so you can run the core app with minimal env vars and add integrations as needed.
-
----
-
-## Features & Functionality
-
-### Core
-
-- **Products:** CRUD, SKU, categories, suppliers, stock levels, status (available / stock low / out), QR codes, import (CSV/Excel), export.
-- **Categories & Suppliers:** CRUD with status; used for filtering and reporting.
-- **Orders:** Create/edit orders with line items, tax/shipping/discount rules, status and payment status; client vs admin views.
-- **Invoices:** One per order; status (draft, sent, paid, overdue, cancelled); PDF, send email, Stripe payment link.
-- **Warehouses:** CRUD, types, status; used for organization and future stock allocation.
-- **Payments:** Stripe Checkout for orders/invoices; webhook for fulfillment.
-- **Shipping:** Shippo labels, rates, tracking; webhook for status.
-
-### Role-Based Experience
-
-- **Admin:** Dashboard (counts, revenue, trends), business insights (charts), admin panel (orders, invoices, products, categories, suppliers, warehouses, users, support tickets, activity history, import history, product reviews, settings). Client and supplier portal “overview” pages for monitoring.
-- **Supplier:** Supplier dashboard (products, orders, revenue, low stock), products/orders/support scoped to their data.
-- **Client:** Client dashboard (orders, spending, invoices), catalog (suppliers, categories, products), orders, invoices, support tickets; checkout and payment flows.
-
-### Additional
-
-- **Support tickets:** Create, reply, status/priority; assigned to product owner (admin); client/supplier see their own.
-- **Product reviews:** Customers can leave reviews; admin approves/rejects; eligibility by order.
-- **Analytics & insights:** Charts (revenue, orders, categories, etc.), forecasting section, AI insights (optional OpenRouter).
-- **API docs & status:** In-app API documentation and health/status page.
-- **Notifications:** In-app notifications; optional email (Brevo) for invoices and reminders.
-- **Theme:** Light/dark with system preference; persisted.
-
----
-
-## Technology Stack
-
-| Layer          | Technologies                                            |
-| -------------- | ------------------------------------------------------- |
-| **Framework**  | Next.js 16 (App Router), React 19                       |
-| **Language**   | TypeScript 5                                            |
-| **Database**   | MongoDB via Prisma ORM                                  |
-| **Auth**       | JWT (cookie), bcryptjs; optional Google OAuth           |
-| **State**      | TanStack Query (server), Zustand (client), React state  |
-| **UI**         | Tailwind CSS, shadcn/ui (Radix), Lucide icons, Recharts |
-| **Forms**      | React Hook Form, Zod                                    |
-| **Payments**   | Stripe (Checkout, Payment Intents, webhooks)            |
-| **Shipping**   | Shippo (labels, rates, tracking)                        |
-| **Email**      | Brevo (transactional, reminders)                        |
-| **Images**     | ImageKit (optional)                                     |
-| **Cache**      | Upstash Redis (optional)                                |
-| **Monitoring** | Sentry (optional)                                       |
-| **AI**         | OpenRouter + Groq fallback (optional, insights)         |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js** 18+ (recommended 20+)
-- **npm** or **yarn**
-- **MongoDB** (local or Atlas)
-
-### Install & Run
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd stock-inventory
-
-# Install dependencies
-npm install
-
-# Copy environment template and set the three required variables (see below)
-cp .env.example .env
-# Edit .env: set DATABASE_URL, JWT_SECRET, and NEXT_PUBLIC_API_URL (e.g. http://localhost:3000)
-
-# Generate Prisma client (runs automatically on postinstall)
-npx prisma generate
-
-# Run development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). All other variables in `.env.example` are optional and enable extra features (Stripe, Brevo, etc.).
-
-### Internal Ubuntu WAS01/DB01 Lab
-
-For the team infrastructure lab, deploy the app on WAS01 and MongoDB on DB01:
+## 0. 목표 아키텍처
 
 ```text
-Internet -> pfSense -> DMZ/WEB01 Nginx -> Internal Server Zone/WAS01 -> DB01 MongoDB
+pfSense
+├─ DMZ
+│  └─ WEB01 / Nginx Reverse Proxy
+├─ Internal Server Zone
+│  ├─ Windows Server VM
+│  │  ├─ DC01
+│  │  ├─ DNS
+│  │  ├─ GPO
+│  │  └─ FS01
+│  └─ Ubuntu Server VM
+│     ├─ WAS01 / Next.js app
+│     └─ DB01 / MongoDB
+├─ User PC Zone
+│  ├─ PC-USER01
+│  └─ PC-USER02 optional
+└─ SOC/SIEM Zone
+   └─ SIEM 또는 LOG01
 ```
 
-Use the internal lab template and setup guide:
+권장 통신 흐름:
+
+```text
+User PC Zone
+  -> pfSense
+  -> DMZ WEB01:80 또는 443
+  -> Internal Server Zone WAS01:3000
+  -> Internal Server Zone DB01:27017
+```
+
+직접 허용할 최소 포트:
+
+| From | To | Port | Purpose |
+| --- | --- | --- | --- |
+| Admin PC 또는 관리망 | WAS01 | 22/tcp | SSH 관리 |
+| Admin PC 또는 관리망 | DB01 | 22/tcp | SSH 관리 |
+| WEB01 | WAS01 | 3000/tcp | Reverse proxy to Next.js |
+| WAS01 | DB01 | 27017/tcp | MongoDB connection |
+| User PC Zone | WEB01 | 80/tcp, 443/tcp | 웹 접속 |
+| WAS01, DB01 | LOG01/SIEM | 팀 정책 포트 | 로그 전송 |
+
+차단 권장:
+
+```text
+User PC Zone -> DB01:27017 직접 접근 차단
+DMZ WEB01 -> DB01:27017 직접 접근 차단
+WAN -> WAS01, DB01 직접 접근 차단
+```
+
+## 1. 서버 정보 먼저 정하기
+
+아래 값은 팀 환경에 맞게 정하고 문서 또는 작업 노트에 남겨둡니다.
+
+| Item | Example | Team value |
+| --- | --- | --- |
+| WAS01 hostname | `was01` |  |
+| DB01 hostname | `db01` |  |
+| WEB01 hostname | `web01` |  |
+| WAS01 internal IP | `10.10.20.21` |  |
+| DB01 internal IP | `10.10.20.22` |  |
+| WEB01 DMZ IP | `10.10.10.10` |  |
+| Service domain | `stockly.internal` |  |
+| App database | `stockly_internal` |  |
+| App DB user | `stockly_app` |  |
+
+이 문서의 `<WAS01_IP>`, `<DB01_IP>`, `<WEB01_IP>`, `<DOMAIN>`은 실제 값으로 바꿔서 실행합니다.
+
+## 2. Ubuntu 공통 준비
+
+WAS01과 DB01 모두에서 실행합니다.
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y curl ca-certificates gnupg git vim ufw
+```
+
+시간 동기화 확인:
+
+```bash
+timedatectl
+```
+
+필요하면 시간대를 한국 시간으로 변경합니다.
+
+```bash
+sudo timedatectl set-timezone Asia/Seoul
+```
+
+호스트명을 설정합니다.
+
+WAS01:
+
+```bash
+sudo hostnamectl set-hostname was01
+```
+
+DB01:
+
+```bash
+sudo hostnamectl set-hostname db01
+```
+
+관리 편의를 위해 `/etc/hosts`에 내부 IP를 등록할 수 있습니다.
+
+```bash
+sudo vim /etc/hosts
+```
+
+예시:
+
+```text
+10.10.20.21 was01
+10.10.20.22 db01
+10.10.10.10 web01
+```
+
+## 3. DB01 - MongoDB 설치
+
+DB01에서만 실행합니다.
+
+이 가이드는 Ubuntu 24.04 LTS 기준으로 MongoDB Community 8.0 공식 APT 저장소를 사용합니다. Ubuntu 버전이 다르면 MongoDB 공식 문서에서 해당 Ubuntu 코드네임에 맞는 저장소를 확인해야 합니다.
+
+Ubuntu 버전 확인:
+
+```bash
+lsb_release -a
+```
+
+MongoDB GPG key 등록:
+
+```bash
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+  sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
+  --dearmor
+```
+
+Ubuntu 24.04 Noble 저장소 등록:
+
+```bash
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | \
+  sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+```
+
+설치:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+```
+
+서비스 시작 및 자동 시작 등록:
+
+```bash
+sudo systemctl enable --now mongod
+sudo systemctl status mongod
+```
+
+정상 확인:
+
+```bash
+mongosh --eval 'db.runCommand({ ping: 1 })'
+```
+
+## 4. DB01 - MongoDB 바인딩 및 인증 설정
+
+MongoDB가 WAS01에서 접속할 수 있도록 DB01의 내부 IP에도 바인딩합니다.
+
+```bash
+sudo vim /etc/mongod.conf
+```
+
+`net` 섹션을 확인하고 `<DB01_IP>`를 추가합니다.
+
+```yaml
+net:
+  port: 27017
+  bindIp: 127.0.0.1,<DB01_IP>
+```
+
+아직 사용자를 만들기 전이면 `security.authorization`은 잠시 꺼둔 상태로 둡니다. 사용자를 만든 뒤 다시 켭니다.
+
+MongoDB 재시작:
+
+```bash
+sudo systemctl restart mongod
+sudo systemctl status mongod
+```
+
+포트 확인:
+
+```bash
+ss -ltnp | grep 27017
+```
+
+## 5. DB01 - 관리자 계정과 앱 계정 생성
+
+DB01에서 `mongosh` 접속:
+
+```bash
+mongosh
+```
+
+관리자 계정 생성:
+
+```javascript
+use admin
+
+db.createUser({
+  user: "mongo_admin",
+  pwd: "CHANGE_ME_ADMIN_PASSWORD",
+  roles: [
+    { role: "userAdminAnyDatabase", db: "admin" },
+    { role: "dbAdminAnyDatabase", db: "admin" },
+    { role: "readWriteAnyDatabase", db: "admin" }
+  ]
+})
+```
+
+앱 DB 계정 생성:
+
+```javascript
+use stockly_internal
+
+db.createUser({
+  user: "stockly_app",
+  pwd: "CHANGE_ME_STRONG_PASSWORD",
+  roles: [
+    { role: "readWrite", db: "stockly_internal" },
+    { role: "dbAdmin", db: "stockly_internal" }
+  ]
+})
+```
+
+`dbAdmin`은 Prisma가 컬렉션과 인덱스를 초기 생성할 때 편합니다. 실서비스 보안 강화를 해야 한다면 초기 구축 후 `readWrite` 중심으로 권한 축소를 검토합니다.
+
+`mongosh` 종료:
+
+```javascript
+exit
+```
+
+이제 인증을 켭니다.
+
+```bash
+sudo vim /etc/mongod.conf
+```
+
+아래 섹션을 추가하거나 수정합니다.
+
+```yaml
+security:
+  authorization: enabled
+```
+
+MongoDB 재시작:
+
+```bash
+sudo systemctl restart mongod
+sudo systemctl status mongod
+```
+
+인증 확인:
+
+```bash
+mongosh "mongodb://mongo_admin:CHANGE_ME_ADMIN_PASSWORD@127.0.0.1:27017/admin"
+```
+
+앱 계정 확인:
+
+```bash
+mongosh "mongodb://stockly_app:CHANGE_ME_STRONG_PASSWORD@127.0.0.1:27017/stockly_internal?authSource=stockly_internal"
+```
+
+## 6. DB01 - 방화벽 설정
+
+pfSense에서 `WAS01 -> DB01:27017/tcp`만 허용하는 것이 1차 방어입니다. DB01 자체 UFW도 켜는 것을 권장합니다.
+
+DB01에서 실행:
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from <ADMIN_PC_IP_OR_ADMIN_SUBNET> to any port 22 proto tcp
+sudo ufw allow from <WAS01_IP> to any port 27017 proto tcp
+sudo ufw enable
+sudo ufw status verbose
+```
+
+관리망 전체를 허용해야 한다면 예를 들어 아래처럼 CIDR을 사용합니다.
+
+```bash
+sudo ufw allow from 10.10.99.0/24 to any port 22 proto tcp
+```
+
+## 7. WAS01 - Node.js 설치
+
+WAS01에서만 실행합니다.
+
+이 프로젝트는 설치 시 Node 18에서도 동작할 수 있지만, 일부 개발 도구가 Node 20 이상을 요구합니다. 팀 재현성을 위해 Node.js `20.19+` 또는 Node.js `22 LTS`를 사용합니다. 아래는 NodeSource를 이용해 Node 20을 설치하는 예시입니다.
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+버전 확인:
+
+```bash
+node -v
+npm -v
+```
+
+권장 예시:
+
+```text
+node v20.x 또는 v22.x
+npm 10.x 이상
+```
+
+빌드에 필요한 기본 패키지:
+
+```bash
+sudo apt-get install -y build-essential
+```
+
+## 8. WAS01 - 프로젝트 clone
+
+WAS01에서 실행합니다.
+
+```bash
+mkdir -p ~/apps
+cd ~/apps
+git clone <GITHUB_REPOSITORY_URL> external-web
+cd external-web
+```
+
+예시:
+
+```bash
+git clone https://github.com/<ORG_OR_USER>/<REPO>.git external-web
+cd external-web
+```
+
+현재 브랜치와 파일 확인:
+
+```bash
+git status
+ls -la
+```
+
+## 9. WAS01 - React, Next.js, Prisma 의존성 설치
+
+프로젝트 루트에서 실행합니다.
+
+```bash
+npm install
+```
+
+이 명령이 설치하는 주요 패키지:
+
+```text
+next 15.0.0
+react 19.0.0
+react-dom 19.0.0
+@prisma/client
+prisma
+tailwindcss
+typescript
+기타 UI, 인증, 결제, 모니터링 라이브러리
+```
+
+설치 후 확인:
+
+```bash
+npm ls next react react-dom @prisma/client prisma --depth=0
+```
+
+참고:
+
+```text
+npm install은 postinstall 스크립트도 실행합니다.
+postinstall = node scripts/patch-rsdw-get-outlined-model.js && npx prisma generate
+```
+
+따라서 설치 과정에서 Prisma Client가 자동 생성됩니다.
+
+보안 경고가 보일 수 있습니다.
+
+```text
+next@15.0.0 보안 경고
+react-server-dom-* 보안 경고
+npm audit vulnerabilities
+```
+
+현재 프로젝트 재현이 목적이면 먼저 lockfile 그대로 설치합니다. 실제 운영 배포 전에는 Next.js와 React Server Components 관련 패키지를 패치 버전으로 올리는 작업을 별도 브랜치에서 검토합니다.
+
+## 10. WAS01 - 환경 변수 설정
+
+프로젝트 루트에서 실행합니다.
 
 ```bash
 cp .env.db01.example .env
-# Edit .env: set <WAS01_IP>, <DB01_IP>, DB password, and JWT_SECRET
-npm install
+vim .env
+```
+
+최소 필수 환경 변수:
+
+```env
+DATABASE_URL="mongodb://stockly_app:CHANGE_ME_STRONG_PASSWORD@<DB01_IP>:27017/stockly_internal?authSource=stockly_internal&directConnection=true&maxPoolSize=10"
+JWT_SECRET="CHANGE_ME_TO_A_LONG_RANDOM_INTERNAL_SECRET"
+NEXT_PUBLIC_API_URL="http://<WAS01_IP>:3000"
+NEXT_PUBLIC_APP_URL="http://<WAS01_IP>:3000"
+```
+
+`JWT_SECRET`은 긴 랜덤 문자열을 사용합니다.
+
+```bash
+openssl rand -base64 48
+```
+
+예시:
+
+```env
+DATABASE_URL="mongodb://stockly_app:VeryStrongPasswordHere@10.10.20.22:27017/stockly_internal?authSource=stockly_internal&directConnection=true&maxPoolSize=10"
+JWT_SECRET="openssl로_생성한_긴_랜덤_문자열"
+NEXT_PUBLIC_API_URL="http://10.10.20.21:3000"
+NEXT_PUBLIC_APP_URL="http://10.10.20.21:3000"
+```
+
+주의:
+
+```text
+.env는 절대 GitHub에 올리지 않습니다.
+.gitignore에 포함되어 있어야 합니다.
+팀 공유가 필요하면 비밀번호 관리 도구 또는 별도 보안 채널을 사용합니다.
+```
+
+선택 기능은 필요할 때만 설정합니다.
+
+| Feature | Env |
+| --- | --- |
+| ImageKit 이미지 업로드 | `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT` |
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Stripe 결제 | `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
+| Sentry 모니터링 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` |
+| Redis/QStash | `UPSTASH_REDIS_*`, `QSTASH_*` |
+
+## 11. WAS01 - DB 연결 확인
+
+WAS01에서 DB01 MongoDB 포트 접근 확인:
+
+```bash
+nc -vz <DB01_IP> 27017
+```
+
+`nc`가 없다면 설치합니다.
+
+```bash
+sudo apt-get install -y netcat-openbsd
+```
+
+MongoDB 클라이언트로 직접 확인하고 싶으면 `mongosh`를 설치하거나 DB01에서 확인합니다. WAS01에 `mongosh`가 있다면:
+
+```bash
+mongosh "$DATABASE_URL" --eval 'db.runCommand({ ping: 1 })'
+```
+
+환경 변수 파일을 shell에 직접 로드하지 않은 상태라면 아래처럼 문자열을 직접 넣습니다.
+
+```bash
+mongosh "mongodb://stockly_app:CHANGE_ME_STRONG_PASSWORD@<DB01_IP>:27017/stockly_internal?authSource=stockly_internal&directConnection=true" --eval 'db.runCommand({ ping: 1 })'
+```
+
+## 12. WAS01 - Prisma 초기화
+
+프로젝트 루트에서 실행합니다.
+
+```bash
+npx prisma generate
 npx prisma db push
+```
+
+역할:
+
+| Command | Purpose |
+| --- | --- |
+| `npx prisma generate` | `prisma/schema.prisma`를 기준으로 Prisma Client 생성 |
+| `npx prisma db push` | MongoDB에 필요한 컬렉션과 인덱스 반영 |
+
+성공하면 Prisma가 MongoDB에 스키마 정보를 반영합니다.
+
+## 13. WAS01 - 데모 데이터 생성
+
+초기 접속과 기능 확인을 위해 내부 데모 데이터를 넣습니다.
+
+```bash
 npm run seed:internal-demo
+```
+
+생성되는 기본 계정:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@stockly.internal` | `12345678` |
+| Client | `client@stockly.internal` | `12345678` |
+| Supplier | `supplier@stockly.internal` | `12345678` |
+
+데이터 확인:
+
+```bash
+npm run script:check-all-data
+npx tsx scripts/verify-demo-accounts.ts
+```
+
+실서비스에서는 기본 비밀번호를 그대로 쓰지 않습니다. 데모 확인 후 관리자 페이지에서 비밀번호를 바꾸거나, 운영 데이터 초기화 절차를 별도로 진행합니다.
+
+## 14. WAS01 - 개발 모드 실행
+
+배포 전 빠른 확인:
+
+```bash
+npm run dev
+```
+
+기본 포트:
+
+```text
+http://<WAS01_IP>:3000
+```
+
+WAS01에서 직접 확인:
+
+```bash
+curl -I http://localhost:3000
+```
+
+다른 VM에서 확인:
+
+```bash
+curl -I http://<WAS01_IP>:3000
+```
+
+개발 모드는 터미널을 닫으면 종료됩니다. 운영용으로는 아래의 build + systemd 방식을 사용합니다.
+
+## 15. WAS01 - 운영 빌드
+
+프로젝트 루트에서 실행합니다.
+
+```bash
 npm run build
+```
+
+메모리가 작은 VM에서 빌드가 죽으면 아래처럼 실행합니다.
+
+```bash
+NODE_OPTIONS=--max-old-space-size=4096 npm run build
+```
+
+빌드 성공 후 운영 서버 실행 테스트:
+
+```bash
 npm run start
 ```
 
-Default internal lab accounts after seeding:
+다른 터미널에서 확인:
+
+```bash
+curl -I http://localhost:3000
+```
+
+테스트가 끝나면 `Ctrl+C`로 종료합니다.
+
+## 16. WAS01 - systemd 서비스 등록
+
+운영에서는 SSH 세션과 무관하게 앱이 살아있도록 systemd 서비스를 등록합니다.
+
+프로젝트 위치가 `~/apps/external-web`라면 실제 절대 경로를 확인합니다.
+
+```bash
+pwd
+```
+
+예시 절대 경로:
 
 ```text
-admin@stockly.internal    / 12345678
-client@stockly.internal   / 12345678
+/home/ubuntu/apps/external-web
+```
+
+서비스 파일 생성:
+
+```bash
+sudo vim /etc/systemd/system/stockly-web.service
+```
+
+내용:
+
+```ini
+[Unit]
+Description=Stockly Next.js Web Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/apps/external-web
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+주의:
+
+```text
+User, Group, WorkingDirectory는 실제 WAS01 계정과 경로로 수정해야 합니다.
+node와 npm 경로가 다르면 which node, which npm으로 확인합니다.
+```
+
+서비스 등록 및 시작:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now stockly-web
+sudo systemctl status stockly-web
+```
+
+로그 확인:
+
+```bash
+journalctl -u stockly-web -f
+```
+
+재시작:
+
+```bash
+sudo systemctl restart stockly-web
+```
+
+## 17. WAS01 - UFW 방화벽 설정
+
+pfSense에서 `WEB01 -> WAS01:3000/tcp`만 허용하는 것이 우선입니다. WAS01 자체 UFW도 켭니다.
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from <ADMIN_PC_IP_OR_ADMIN_SUBNET> to any port 22 proto tcp
+sudo ufw allow from <WEB01_IP> to any port 3000 proto tcp
+sudo ufw enable
+sudo ufw status verbose
+```
+
+테스트 중 User PC에서 WAS01에 직접 접속해야 하는 경우에만 임시로 허용합니다.
+
+```bash
+sudo ufw allow from <USER_PC_IP> to any port 3000 proto tcp
+```
+
+테스트 후 제거:
+
+```bash
+sudo ufw delete allow from <USER_PC_IP> to any port 3000 proto tcp
+```
+
+## 18. WEB01 - Nginx Reverse Proxy 예시
+
+WEB01은 DMZ에 두고, 사용자는 WEB01로만 접속하게 합니다. WEB01에서 WAS01의 `3000/tcp`로 프록시합니다.
+
+WEB01에서 설치:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx
+```
+
+사이트 설정:
+
+```bash
+sudo vim /etc/nginx/sites-available/stockly
+```
+
+HTTP 예시:
+
+```nginx
+server {
+    listen 80;
+    server_name <DOMAIN>;
+
+    location / {
+        proxy_pass http://<WAS01_IP>:3000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+활성화:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/stockly /etc/nginx/sites-enabled/stockly
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+HTTPS를 사용할 경우 팀 인증서 정책에 맞게 인증서를 배치한 뒤 `listen 443 ssl;` 서버 블록을 추가합니다. 사설망이면 내부 CA 인증서를 쓰고, 공인 도메인이면 Let's Encrypt 또는 조직 인증서를 사용합니다.
+
+HTTPS 적용 후 WAS01의 `.env`도 서비스 URL 기준으로 바꿉니다.
+
+```env
+NEXT_PUBLIC_API_URL="https://<DOMAIN>"
+NEXT_PUBLIC_APP_URL="https://<DOMAIN>"
+```
+
+변경 후 WAS01에서 다시 빌드하고 재시작합니다.
+
+```bash
+npm run build
+sudo systemctl restart stockly-web
+```
+
+## 19. pfSense 정책 체크리스트
+
+최소 정책:
+
+```text
+User PC Zone -> WEB01:80,443 허용
+WEB01 -> WAS01:3000 허용
+WAS01 -> DB01:27017 허용
+관리망 -> WEB01/WAS01/DB01:22 허용
+그 외 DB01:27017 접근 차단
+WAN -> Internal Server Zone 직접 접근 차단
+```
+
+권장 로그:
+
+```text
+차단된 DB01:27017 접근 로그
+WEB01 -> WAS01 프록시 실패 로그
+WAS01 -> DB01 연결 실패 로그
+SSH 로그인 성공/실패 로그
+```
+
+SIEM 또는 LOG01로 보낼 수 있으면 pfSense, Nginx, systemd journal, MongoDB 로그를 수집합니다.
+
+## 20. 배포 후 기능 확인
+
+WAS01:
+
+```bash
+sudo systemctl status stockly-web
+curl -I http://localhost:3000
+```
+
+WEB01:
+
+```bash
+curl -I http://<WAS01_IP>:3000
+curl -I http://<DOMAIN>
+```
+
+DB01:
+
+```bash
+sudo systemctl status mongod
+mongosh "mongodb://stockly_app:CHANGE_ME_STRONG_PASSWORD@127.0.0.1:27017/stockly_internal?authSource=stockly_internal" --eval 'db.runCommand({ ping: 1 })'
+```
+
+브라우저:
+
+```text
+http://<DOMAIN>
+또는
+http://<WEB01_IP>
+```
+
+로그인:
+
+```text
+admin@stockly.internal / 12345678
+client@stockly.internal / 12345678
 supplier@stockly.internal / 12345678
 ```
 
-See [docs/DB01_MONGODB_SETUP.md](docs/DB01_MONGODB_SETUP.md) for MongoDB, pfSense, and WAS01 details.
+## 21. 업데이트 배포 절차
 
-
-Default scripts:
-
-| Script | Command         | Description                        |
-| ------ | --------------- | ---------------------------------- |
-| Dev    | `npm run dev`   | Next.js dev server (Turbopack)     |
-| Build  | `npm run build` | Prisma generate + production build |
-| Start  | `npm run start` | Production server                  |
-| Lint   | `npm run lint`  | ESLint                             |
-
----
-
-## Environment Variables
-
-The app uses **three required** variables (validated in `lib/env.ts`). Everything else is optional and enables specific features. Use `.env.example` as a template: copy it to `.env` and set at least the required ones to run locally.
-
-### Required (must set to run the project)
-
-| Variable              | Description                                       | Example for localhost                                                                                                 |
-| --------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`        | MongoDB connection string                         | `mongodb://localhost:27017/stockly` or Atlas `mongodb+srv://user:pass@cluster.../stockly?retryWrites=true&w=majority` |
-| `JWT_SECRET`          | Secret for signing JWT session cookies            | Any long random string (e.g. 32+ characters)                                                                          |
-| `NEXT_PUBLIC_API_URL` | Base URL of the app (emails, redirects, API base) | `http://localhost:3000` for local; your production URL in prod                                                        |
-
-### Optional (listed in `.env.example` with comments)
-
-Uncomment and set in `.env` only if you need the feature:
-
-| Variable          | Purpose                                                                                                                                                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **ImageKit**      | `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`, `NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY`, `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` — Product image uploads                                                                     |
-| **Google OAuth**  | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID` — Sign in with Google                                                                                                                                           |
-| **Brevo**         | `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `BREVO_ADMIN_EMAIL` — Transactional email (invoice send, reminders)                                                                                                            |
-| **Sentry**        | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` — Error monitoring                                                                                                                                                                                  |
-| **Upstash Redis** | `UPSTASH_REDIS_URL`, `UPSTASH_REDIS_TOKEN` (or `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`) — Caching, rate limiting                                                                                                             |
-| **QStash**        | `QSTASH_URL`, `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` — Background job queue (e.g. email)                                                                                                                  |
-| **OpenRouter**    | `OPENROUTER_API_KEY` — AI insights (primary LLM)                                                                                                                                                                                           |
-| **Groq**          | `GROQ_API_KEY`, optional `GROQ_MODEL` (default `llama-3.3-70b-versatile`) — fallback when OpenRouter billing/rate-limit/upstream fails                                                                                                     |
-| **Stripe**        | `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Payments (checkout, webhooks)                                                                                                                            |
-| **Shippo**        | `SHIPPO_API_KEY`, and optionally `SHIPPO_FROM_NAME`, `SHIPPO_FROM_STREET1`, `SHIPPO_FROM_CITY`, `SHIPPO_FROM_STATE`, `SHIPPO_FROM_ZIP`, `SHIPPO_FROM_COUNTRY`, `SHIPPO_FROM_PHONE`, `SHIPPO_FROM_EMAIL` — Shipping labels, rates, tracking |
-| **App URL**       | `NEXT_PUBLIC_APP_URL` — Metadata and some redirects (defaults to Vercel URL if unset)                                                                                                                                                      |
-| **Internal API**  | `INTERNAL_API_KEY` — Bearer token for server-to-server calls (e.g. cron hitting `/api/invoices/reminders`)                                                                                                                                 |
-
-### Minimal `.env` to run on localhost
-
-```env
-DATABASE_URL="mongodb://localhost:27017/stockly"
-JWT_SECRET="your-super-secret-jwt-key-min-32-chars"
-NEXT_PUBLIC_API_URL="http://localhost:3000"
-```
-
-### Full `.env.example` reference
-
-Below is the complete `.env.example` file so you can see exactly what to set. Copy the repo’s `.env.example` to `.env`, then fill in the **required** values (first three). Optional variables are commented out; uncomment and set them only if you need those features.
-
-```env
-# =============================================================================
-# REQUIRED – Set these three so the app can start (see lib/env.ts).
-# Copy this file to .env and fill in your values. Never commit .env to git.
-# =============================================================================
-
-# MongoDB connection string (local or Atlas).
-# Local: mongodb://localhost:27017/stockly
-# Atlas: mongodb+srv://USER:PASSWORD@cluster.mongodb.net/stockly?retryWrites=true&w=majority
-DATABASE_URL="mongodb://localhost:27017/stockly"
-
-# Secret used to sign JWT session tokens. Use a long random string in production.
-JWT_SECRET="your_super_secret_jwt_key_here_change_this_in_production"
-
-# Base URL of this app (used for emails, redirects, API base). Use http://localhost:3000 for local.
-NEXT_PUBLIC_API_URL="http://localhost:3000"
-
-# =============================================================================
-# OPTIONAL – App works without these. Uncomment and set to enable features.
-# =============================================================================
-
-# Environment (development | production). Usually set by the runner.
-# NODE_ENV="development"
-
-# Used in metadata and some redirects. Defaults to Vercel URL if unset.
-# NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# --- ImageKit (product images, uploads) - https://imagekit.io ---
-# IMAGEKIT_PUBLIC_KEY=
-# IMAGEKIT_PRIVATE_KEY=
-# IMAGEKIT_URL_ENDPOINT=
-# NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
-# NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
-
-# --- Google OAuth - https://console.cloud.google.com/apis/credentials ---
-# GOOGLE_CLIENT_ID=
-# GOOGLE_CLIENT_SECRET=
-# NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-
-# --- Brevo (transactional email, invoice send, reminders) - https://www.brevo.com ---
-# BREVO_API_KEY=
-# BREVO_SENDER_EMAIL=
-# BREVO_SENDER_NAME=
-# BREVO_ADMIN_EMAIL=
-
-# --- Sentry (error monitoring) - https://sentry.io ---
-# SENTRY_DSN=
-# NEXT_PUBLIC_SENTRY_DSN=
-# NEXT_PUBLIC_DISABLE_BROWSER_TRANSLATE=false  # optional prod-only; see "Browser translation" below
-
-# --- Upstash Redis (caching, rate limit) - https://upstash.com ---
-# UPSTASH_REDIS_URL=
-# UPSTASH_REDIS_TOKEN=
-# Or: UPSTASH_REDIS_REST_URL= and UPSTASH_REDIS_REST_TOKEN=
-
-# --- QStash (background jobs, e.g. email queue) - https://upstash.com/qstash ---
-# QSTASH_URL=
-# QSTASH_TOKEN=
-# QSTASH_CURRENT_SIGNING_KEY=
-# QSTASH_NEXT_SIGNING_KEY=
-
-# --- OpenRouter (AI insights) - https://openrouter.ai ---
-# OPENROUTER_API_KEY=
-
-# --- Groq (AI fallback) - https://console.groq.com ---
-# GROQ_API_KEY=
-# GROQ_MODEL=llama-3.3-70b-versatile
-
-# --- Stripe (payments – checkout, webhooks) - https://dashboard.stripe.com/test/apikeys ---
-# STRIPE_API_KEY=sk_test_...
-# STRIPE_WEBHOOK_SECRET=whsec_...  (Stripe Dashboard → Webhooks → add /api/payments/webhook)
-# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# --- Shippo (shipping labels, rates, tracking) - https://goshippo.com/dashboard/apikeys ---
-# SHIPPO_API_KEY=shippo_test_...
-# Sender address for labels (optional):
-# SHIPPO_FROM_NAME=
-# SHIPPO_FROM_STREET1=
-# SHIPPO_FROM_STREET2=
-# SHIPPO_FROM_CITY=
-# SHIPPO_FROM_STATE=
-# SHIPPO_FROM_ZIP=
-# SHIPPO_FROM_COUNTRY=
-# SHIPPO_FROM_PHONE=
-# SHIPPO_FROM_EMAIL=
-
-# --- Internal API (e.g. cron calling /api/invoices/reminders with Bearer token) ---
-# INTERNAL_API_KEY=
-
-# =============================================================================
-# Instructions:
-# 1. cp .env.example .env
-# 2. Set DATABASE_URL, JWT_SECRET, and NEXT_PUBLIC_API_URL at minimum.
-# 3. Uncomment and set any optional vars you need. Never commit .env.
-# =============================================================================
-```
-
-Or copy the project’s `.env.example` to `.env` and leave the optional variables commented out; the app will start with only the three required ones set.
-
-### Where to get values
-
-- **MongoDB:** Local: `mongodb://localhost:27017/stockly`. Cloud: [mongodb.com/atlas](https://www.mongodb.com/atlas)
-- **Stripe:** [dashboard.stripe.com](https://dashboard.stripe.com) → API keys; Webhooks → add endpoint for `/api/payments/webhook`
-- **Shippo:** [goshippo.com](https://goshippo.com) → API keys (use test key for development)
-- **Brevo:** [brevo.com](https://www.brevo.com) → API key and sender/admin email settings
-- **ImageKit:** [imagekit.io](https://imagekit.io) → keys and URL endpoint
-- **Upstash Redis / QStash:** [upstash.com](https://upstash.com)
-- **Sentry:** [sentry.io](https://sentry.io)
-- **OpenRouter:** [openrouter.ai](https://openrouter.ai)
-
-### Browser translation (Chrome / Edge)
-
-The UI is **English**. Contributors worldwide may use the browser **“Translate this page”** feature; that mutates the DOM and can trigger React `removeChild` errors (caught by ErrorBoundary). This is a known browser + React limitation, not bad inventory logic.
-
-- **QA:** Prefer Incognito with extensions off and **do not** translate the page when testing navigation or tables.
-- **Sentry:** `scrubSentryEvent` drops `removeChild` events when translation is detected (`translated-ltr` / `translated-rtl`).
-- **Optional prod hardening:** Set `NEXT_PUBLIC_DISABLE_BROWSER_TRANSLATE=true` on your deployment only (adds `translate="no"` on `<html>`; forks stay translatable by default).
-
----
-
-## Project Structure
+WAS01에서 실행합니다.
 
 ```bash
-stock-inventory/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx          # Root layout, metadata, providers
-│   ├── page.tsx            # Home (store overview for admin)
-│   ├── login/              # Login page
-│   ├── register/           # Registration
-│   ├── products/           # Products list & detail
-│   ├── orders/             # Orders list & detail
-│   ├── invoices/           # Invoices list & detail
-│   ├── categories/         # Categories list & detail
-│   ├── suppliers/          # Suppliers list & detail
-│   ├── warehouses/         # Warehouses list & detail
-│   ├── client/             # Client portal dashboard
-│   ├── supplier/           # Supplier portal dashboard
-│   ├── support-tickets/    # Support tickets (all roles)
-│   ├── business-insights/  # Business insights (charts)
-│   ├── api-docs/           # API documentation page
-│   ├── api-status/        # API status page
-│   ├── settings/          # User settings (e.g. email preferences)
-│   ├── admin/             # Admin panel (layout + nested routes)
-│   │   ├── dashboard-overall-insights/
-│   │   ├── products/, orders/, invoices/, categories/, suppliers/, warehouses/
-│   │   ├── client-orders/, client-invoices/, client-portal/, supplier-portal/
-│   │   ├── support-tickets/, user-management/, activity-history/
-│   │   ├── history/ (import history), product-reviews/, my-activity/
-│   │   └── settings/
-│   └── api/               # API route handlers (see API Endpoints)
-├── components/            # React components
-│   ├── ui/                # shadcn-style primitives (button, dialog, table, etc.)
-│   ├── layouts/           # Navbar, AdminSidebar, PageWithSidebar, etc.
-│   ├── Pages/             # Page-level components (HomePage, LoginPage, etc.)
-│   ├── home/              # Statistics cards, sections for home
-│   ├── products/          # ProductList, ProductTable, dialogs, filters
-│   ├── orders/            # OrderList, OrderDialog, filters, shipping
-│   ├── invoices/          # InvoiceList, InvoiceDialog, filters
-│   ├── category/, supplier/, warehouses/  # List, table, dialog, filters
-│   ├── payments/          # PaymentButton, PaymentDialog
-│   ├── support-tickets/   # Ticket list, detail, dialog
-│   ├── product-reviews/   # Reviews section, dialogs
-│   ├── admin/             # Admin-only content (tables, details, settings)
-│   ├── shared/            # ErrorBoundary, PaginationSelector, etc.
-│   ├── providers/         # ThemeProvider, KeyboardShortcutsProvider
-│   ├── forms/, dialogs/   # Shared form and dialog building blocks
-│   └── ...
-├── lib/                   # Shared backend/utility code
-│   ├── api/               # API client, endpoints, CORS, rate limit
-│   ├── auth/              # OAuth helpers
-│   ├── cache/             # Redis cache utils
-│   ├── email/             # Brevo send, templates, queue
-│   ├── server/            # Server-side data (dashboard, invoices, orders, etc.)
-│   ├── react-query/       # Query client, keys, provider, invalidate-all
-│   ├── validations/       # Zod schemas (product, order, invoice, etc.)
-│   ├── stripe/, shippo/   # Payment & shipping
-│   ├── imagekit.ts        # ImageKit client
-│   ├── env.ts             # Env validation
-│   └── ...
-├── hooks/queries/         # TanStack Query hooks (useProducts, useOrders, etc.)
-├── contexts/              # Auth context
-├── types/                 # TypeScript types (dashboard, product, order, etc.)
-├── prisma/
-│   ├── schema.prisma     # MongoDB models (User, Product, Order, Invoice, etc.)
-│   ├── client.ts         # Prisma client singleton
-│   └── *.ts               # Repository-style helpers (product, order, invoice, etc.)
-├── utils/                 # auth (JWT, session), axiosInstance
-├── middleware.ts          # Next.js middleware (e.g. auth redirects)
-└── public/                # Static assets (favicon, SVGs)
+cd ~/apps/external-web
+git pull
+npm install
+npx prisma generate
+npx prisma db push
+npm run build
+sudo systemctl restart stockly-web
+sudo systemctl status stockly-web
 ```
 
----
+문제 발생 시 최근 로그 확인:
 
-## Application Routes
-
-| Path                                        | Who      | Description                                                      |
-| ------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `/`                                         | Admin    | Store overview (state cards)                                     |
-| `/login`, `/register`                       | All      | Auth                                                             |
-| `/products`, `/products/[id]`               | All      | Products list & detail                                           |
-| `/orders`, `/orders/[id]`                   | All      | Orders list & detail                                             |
-| `/invoices`, `/invoices/[id]`               | All      | Invoices list & detail                                           |
-| `/categories`, `/categories/[id]`           | All      | Categories                                                       |
-| `/suppliers`, `/suppliers/[id]`             | All      | Suppliers                                                        |
-| `/warehouses`, `/warehouses/[id]`           | All      | Warehouses                                                       |
-| `/client`                                   | Client   | Client dashboard                                                 |
-| `/supplier`                                 | Supplier | Supplier dashboard                                               |
-| `/support-tickets`, `/support-tickets/[id]` | All      | Support tickets                                                  |
-| `/business-insights`                        | Admin    | Business charts                                                  |
-| `/api-docs`, `/api-status`                  | All      | API docs & status                                                |
-| `/settings/email-preferences`               | All      | Email preferences                                                |
-| `/admin/*`                                  | Admin    | Admin panel (dashboard, products, orders, invoices, users, etc.) |
-
----
-
-## API Endpoints
-
-All under `/api`, authenticated via cookie `session_id` (JWT) unless noted.
-
-### Auth
-
-- `POST /api/auth/register` — Register
-- `POST /api/auth/login` — Login
-- `POST /api/auth/logout` — Logout
-- `GET /api/auth/session` — Current session
-- `GET /api/auth/oauth/google`, `GET /api/auth/oauth/google/callback` — Google OAuth
-
-### Core resources (CRUD + list)
-
-- `GET|POST /api/products`, `GET|PATCH|DELETE /api/products/[id]`
-- `GET|POST /api/categories`, `GET|PATCH|DELETE /api/categories/[id]`
-- `GET|POST /api/suppliers`, `GET|PATCH|DELETE /api/suppliers/[id]`
-- `GET|POST /api/orders`, `GET|PATCH|DELETE /api/orders/[id]`
-- `GET|POST /api/invoices`, `GET|PATCH|DELETE /api/invoices/[id]`
-- `GET|POST /api/warehouses`, `GET|PATCH|DELETE /api/warehouses/[id]`
-
-### Products extras
-
-- `GET /api/products/import` — Import (CSV/Excel)
-- `POST /api/products/image` — Image upload (e.g. ImageKit)
-- `GET /api/products/qr-code` — QR code for product
-
-### Invoices
-
-- `GET /api/invoices/[id]/pdf` — PDF
-- `POST /api/invoices/[id]/send` — Send email
-- `POST /api/invoices/reminders` — Send reminders (optional `INTERNAL_API_KEY`)
-
-### Payments & shipping
-
-- `POST /api/payments/checkout` — Create Stripe Checkout session
-- `POST /api/payments/webhook` — Stripe webhook
-- `POST /api/shipping/labels` — Shippo label
-- `GET /api/shipping/rates` — Shippo rates
-- `GET /api/shipping/tracking` — Tracking
-
-### Portal & dashboard
-
-- `GET /api/dashboard` — Admin dashboard stats
-- `GET /api/portal/client` — Client dashboard (client only)
-- `GET /api/portal/client/catalog` — Client catalog (client only)
-- `GET /api/portal/client/browse-meta`, `GET /api/portal/client/browse-products` — Browse (client)
-- `GET /api/portal/supplier` — Supplier dashboard (supplier only)
-- `GET /api/admin/client-orders`, `GET /api/admin/client-invoices` — Admin client data
-- `GET /api/client-portal`, `GET /api/supplier-portal` — Admin overview (admin only)
-- `GET /api/admin/counts` — Admin sidebar counts
-
-### Support & reviews
-
-- `GET|POST /api/support-tickets`, `GET|PATCH /api/support-tickets/[id]`
-- `POST /api/support-tickets/[id]/replies`
-- `GET /api/support-tickets/product-owners`
-- `GET|POST /api/product-reviews`, `GET|PATCH|DELETE /api/product-reviews/[id]`
-- `GET /api/product-reviews/by-product/[productId]`, `GET /api/product-reviews/eligibility`
-
-### User & system
-
-- `GET|POST /api/users`, `GET|PATCH|DELETE /api/users/[id]` — Admin only
-- `GET|PUT /api/user/email-preferences`
-- `GET|PATCH /api/notifications/in-app`, `GET /api/notifications/in-app/unread-count`, etc.
-- `GET /api/import-history`, `GET /api/import-history/[id]`
-- `GET /api/audit-logs` — Admin only
-- `GET|PATCH /api/system-config` — Admin only
-- `GET /api/forecasting`, `GET /api/ai/insights`
-- `GET /api/stock-allocations`
-- `GET /api/health` — Health check
-- `GET /api/openapi` — OpenAPI spec
-
----
-
-## Backend & Database
-
-### Prisma + MongoDB
-
-- **Schema:** `prisma/schema.prisma` (datasource `mongodb`).
-- **Models:** User, Category, Supplier, Product, Order, OrderItem, Invoice, Warehouse, SupportTicket, SupportTicketReply, ProductReview, ImportHistory, Notification, etc. Relations and indexes are defined in the schema.
-- **Client:** Singleton in `prisma/client.ts`; used by API routes and `lib/server/*` and `prisma/*.ts` helpers.
-
-### Server-side data
-
-- **Dashboard:** `lib/server/dashboard-data.ts` — admin dashboard aggregates (counts, revenue, trends, recent activity).
-- **Client dashboard:** `lib/server/client-dashboard.ts` — client stats and catalog.
-- **Supplier dashboard:** `lib/server/supplier-dashboard.ts` — supplier stats.
-- **Invoices/orders:** `lib/server/invoices-data.ts`, `lib/server/orders-data.ts`, etc. — used for SSR and API.
-
-### Auth flow
-
-- Login/register set a JWT in cookie `session_id`.
-- `utils/auth.ts`: `getSessionFromRequest(request)` reads cookie, verifies JWT, loads user from DB.
-- API routes call `getSessionFromRequest(request)` and check `session.role` and `session.id` for authorization.
-
----
-
-## Key Components & Reuse
-
-### Using a shared UI component
-
-Most UI primitives live under `components/ui/` (button, dialog, input, table, badge, etc.). They are built for Tailwind and can be reused in any page or component.
-
-```tsx
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-<Button variant="default">Save</Button>
-<Dialog open={open} onOpenChange={setOpen}>
-  <DialogContent>...</DialogContent>
-</Dialog>
+```bash
+journalctl -u stockly-web -n 100 --no-pager
 ```
 
-### Using TanStack Query hooks
+## 22. 백업과 복구
 
-Data fetching is centralized in `hooks/queries/`. Use the hooks in components; they handle loading, error, and cache.
+DB01에서 백업 디렉터리 생성:
 
-```tsx
-import { useProducts, useCategories } from "@/hooks/queries";
-
-function MyComponent() {
-  const { data: products, isLoading } = useProducts();
-  const { data: categories } = useCategories();
-  // ...
-}
+```bash
+sudo mkdir -p /opt/mongodb-backup
+sudo chown "$USER":"$USER" /opt/mongodb-backup
 ```
 
-### Using auth context
+백업:
 
-```tsx
-import { useAuth } from "@/contexts";
-
-function MyComponent() {
-  const { user, isLoggedIn, logout, isCheckingAuth } = useAuth();
-  if (isCheckingAuth) return <Skeleton />;
-  if (!isLoggedIn) return <Redirect to="/login" />;
-  return <div>Hello, {user?.name}</div>;
-}
+```bash
+mongodump \
+  --uri="mongodb://mongo_admin:CHANGE_ME_ADMIN_PASSWORD@127.0.0.1:27017/admin" \
+  --out="/opt/mongodb-backup/$(date +%F-%H%M%S)"
 ```
 
-### Reusing in another project
+복구 예시:
 
-- Copy `components/ui/*` and any Tailwind/shadcn config and dependencies.
-- Copy `lib/utils.ts` (e.g. `cn()`).
-- Copy specific feature folders (e.g. `components/products/`, `hooks/queries/use-products.ts`) and adapt API client and types to your backend.
-- Reuse `lib/validations/*` (Zod schemas) and align with your API payloads.
-
-### Example: Using StatisticsCard on another page
-
-```tsx
-import { StatisticsCard } from "@/components/home/StatisticsCard";
-
-<StatisticsCard
-  title="Total Products"
-  value={count}
-  description="Products in catalog"
-  variant="violet"
-  badges={[
-    { label: "Active", value: activeCount },
-    { label: "Inactive", value: inactiveCount },
-  ]}
-/>;
+```bash
+mongorestore \
+  --uri="mongodb://mongo_admin:CHANGE_ME_ADMIN_PASSWORD@127.0.0.1:27017/admin" \
+  /opt/mongodb-backup/<BACKUP_DIRECTORY>
 ```
 
-### Example: Form with Zod and React Hook Form
+운영에서는 백업 파일을 DB01 로컬 디스크에만 두지 말고, FS01 또는 별도 백업 저장소로 주기적으로 복사합니다.
 
-```tsx
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+## 23. 자주 발생하는 문제
 
-const schema = z.object({ name: z.string().min(1) });
-type FormData = z.infer<typeof schema>;
+### `Missing required environment variable`
 
-const form = useForm<FormData>({
-  resolver: zodResolver(schema),
-  defaultValues: { name: "" },
-});
+원인:
+
+```text
+.env가 없거나 DATABASE_URL, JWT_SECRET, NEXT_PUBLIC_API_URL이 비어 있음
 ```
 
----
+해결:
 
-## Walkthrough: Run and Test
+```bash
+cp .env.db01.example .env
+vim .env
+```
 
-1. **Setup:** Set `DATABASE_URL`, `JWT_SECRET`, and `NEXT_PUBLIC_API_URL` in `.env`, then run `npm install` and `npm run dev`.
-2. **Register:** Open `/register`, create an admin user (first user can act as store owner).
-3. **Login:** Go to `/login`, sign in; you land on `/` (store overview).
-4. **Products:** Go to `/products`, add categories and suppliers, then add products.
-5. **Orders & invoices:** Create an order at `/orders`, then create or view its invoice at `/invoices`.
-6. **Roles:** Create users with roles `client` or `supplier` (e.g. via admin user management); log in as them to see client portal (`/client`) or supplier portal (`/supplier`).
-7. **Optional:** Add Stripe, Shippo, or Brevo env vars to enable payments, shipping, or email.
+### `Prisma cannot connect to MongoDB`
 
----
+확인:
 
-## Conclusion
+```bash
+nc -vz <DB01_IP> 27017
+sudo ufw status verbose
+```
 
-Stockly is a full-stack example of a role-based inventory and order management app with Next.js 16, React 19, Prisma, and MongoDB. It demonstrates App Router structure, API route design, JWT auth, TanStack Query, and optional third-party integrations. Use this README as a map to the codebase, env setup, APIs, and components so you can run, extend, or reuse parts of the project in your own applications.
+점검 대상:
 
----
+```text
+DB01 mongod 실행 여부
+DB01 bindIp에 <DB01_IP> 포함 여부
+MongoDB authorization 설정
+DATABASE_URL 비밀번호와 authSource
+pfSense WAS01 -> DB01:27017 허용 여부
+DB01 UFW 허용 여부
+```
 
-## Keywords
+### `npm install`에서 Node engine 경고
 
-stock inventory, inventory management, warehouse management, stock management system, Next.js, React, Prisma, MongoDB, product catalog, orders, invoices, suppliers, categories, JWT authentication, Stripe payments, Shippo shipping, Brevo email, role-based access, admin dashboard, client portal, supplier portal, TanStack Query, TypeScript, Tailwind CSS, shadcn/ui, Arnob Mahmud
+원인:
 
----
+```text
+Node.js 버전이 낮음
+```
 
-## License
+해결:
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the code as per the terms of the license.
+```bash
+node -v
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 
----
+### `next build`가 메모리 부족으로 종료
 
-## Happy Coding! 🎉
+해결:
 
-This is an **open-source project** — feel free to use, enhance, and extend this project further!
+```bash
+NODE_OPTIONS=--max-old-space-size=4096 npm run build
+```
 
-If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://www.arnobmahmud.com](https://www.arnobmahmud.com).
+VM 메모리가 너무 작으면 4GB 이상으로 늘립니다.
 
-**Enjoy building and learning!** 🚀
+### WEB01에서는 접속되지만 로그인 또는 API가 이상함
 
-Thank you! 😊
+확인:
+
+```text
+NEXT_PUBLIC_API_URL
+NEXT_PUBLIC_APP_URL
+Nginx proxy_set_header 설정
+HTTP/HTTPS 스킴 불일치
+브라우저 캐시
+```
+
+환경 변수를 바꾸면 WAS01에서 다시 빌드해야 합니다.
+
+```bash
+npm run build
+sudo systemctl restart stockly-web
+```
+
+### systemd 서비스가 바로 죽음
+
+확인:
+
+```bash
+sudo systemctl status stockly-web
+journalctl -u stockly-web -n 100 --no-pager
+```
+
+주요 원인:
+
+```text
+WorkingDirectory 경로 틀림
+User/Group이 실제 계정과 다름
+.env 누락
+npm install 또는 npm run build 미실행
+DB 연결 실패
+```
+
+## 24. 최종 체크리스트
+
+DB01:
+
+```text
+[ ] MongoDB 설치 완료
+[ ] mongod enable/start 완료
+[ ] bindIp = 127.0.0.1,<DB01_IP>
+[ ] security.authorization = enabled
+[ ] mongo_admin 생성
+[ ] stockly_app 생성
+[ ] WAS01에서 27017 접근 가능
+[ ] User PC Zone, DMZ에서 DB 직접 접근 차단
+```
+
+WAS01:
+
+```text
+[ ] Node.js 20.19+ 또는 22 LTS 설치
+[ ] Git clone 완료
+[ ] npm install 완료
+[ ] .env 작성 완료
+[ ] npx prisma generate 완료
+[ ] npx prisma db push 완료
+[ ] npm run seed:internal-demo 완료
+[ ] npm run build 완료
+[ ] stockly-web systemd 서비스 실행
+[ ] WEB01에서 WAS01:3000 접근 가능
+```
+
+WEB01:
+
+```text
+[ ] Nginx 설치
+[ ] server_name 설정
+[ ] proxy_pass http://<WAS01_IP>:3000 설정
+[ ] nginx -t 성공
+[ ] User PC에서 WEB01 접속 가능
+[ ] HTTPS 적용 시 NEXT_PUBLIC_API_URL/NEXT_PUBLIC_APP_URL 갱신 후 WAS01 재빌드
+```
+
+pfSense:
+
+```text
+[ ] User PC Zone -> WEB01:80,443 허용
+[ ] WEB01 -> WAS01:3000 허용
+[ ] WAS01 -> DB01:27017 허용
+[ ] WAN -> Internal Server Zone 차단
+[ ] DB01 직접 접근 차단 로그 확인
+```
+
+## 25. 참고 명령 모음
+
+프로젝트 루트에서 자주 쓰는 명령:
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run start
+npx prisma generate
+npx prisma db push
+npm run seed:internal-demo
+npm run script:check-all-data
+npx tsx scripts/verify-demo-accounts.ts
+```
+
+서비스 운영 명령:
+
+```bash
+sudo systemctl status stockly-web
+sudo systemctl restart stockly-web
+journalctl -u stockly-web -f
+```
+
+MongoDB 운영 명령:
+
+```bash
+sudo systemctl status mongod
+sudo systemctl restart mongod
+mongosh "mongodb://mongo_admin:CHANGE_ME_ADMIN_PASSWORD@127.0.0.1:27017/admin"
+```

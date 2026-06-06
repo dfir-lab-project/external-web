@@ -20,19 +20,19 @@ import { Shield, Loader2, Store, ShoppingBag, Users } from "lucide-react";
 
 /**
  * Test account credentials for quick login (demo / production).
- * Main account: test@admin.com (full privileges). Run scripts/update-demo-user.ts --to admin once to migrate existing test@user.com to test@admin.com. Client/supplier for later.
+ * Internal lab accounts are seeded into the local MongoDB used by WAS01/DB01.
  */
 const testAccounts = {
   "guest-user": {
-    email: "test@admin.com",
+    email: "admin@stockly.internal",
     password: "12345678",
   },
   "guest-supplier": {
-    email: "test@supplier.com",
+    email: "supplier@stockly.internal",
     password: "12345678",
   },
   "guest-client": {
-    email: "test@client.com",
+    email: "client@stockly.internal",
     password: "12345678",
   },
 };
@@ -237,8 +237,8 @@ export default function LoginPage() {
                   Demo Accounts Guide
                 </h1>
                 <p className="text-md lg:text-lg text-gray-700 dark:text-white/80 font-medium leading-relaxed text-center">
-                  Use the dropdown on the right to sign in as Admin, Client, or
-                  Supplier. All demo accounts use password: 12345678.
+                  Use the dropdown on the right to sign in with the local internal lab accounts.
+                  All seeded accounts use password: 12345678.
                 </p>
               </div>
 
@@ -256,7 +256,7 @@ export default function LoginPage() {
                   </div>
                   <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                     Full access: products, orders, invoices, warehouses, admin
-                    panel. New user registration creates an admin account.
+                    panel. Seeded as the internal administrator account.
                   </p>
                 </div>
 
@@ -272,7 +272,7 @@ export default function LoginPage() {
                   </div>
                   <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                     Client portal: catalog, your orders, invoices, place order,
-                    pay with Stripe. Role set via script for showcase only.
+                    pay with Stripe. Seeded in local MongoDB for the internal lab.
                   </p>
                 </div>
 
@@ -288,7 +288,7 @@ export default function LoginPage() {
                   </div>
                   <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                     Supplier portal: your products, orders, revenue, low stock.
-                    Role and supplier link set via script for showcase only.
+                    Seeded in local MongoDB with a supplier link.
                   </p>
                 </div>
 
@@ -303,8 +303,7 @@ export default function LoginPage() {
                     </h3>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    You cannot create client or supplier accounts at sign-up;
-                    those roles are applied in the DB via script for demo. As
+                    Client and supplier roles are seeded in MongoDB for this lab. As
                     admin, use User Management to view or change user roles.
                   </p>
                 </div>
@@ -359,19 +358,19 @@ export default function LoginPage() {
                           value="guest-user"
                           className="cursor-pointer text-gray-900 dark:text-white focus:bg-sky-100 dark:focus:bg-white/10 focus:text-gray-900 dark:focus:text-white"
                         >
-                          Guest User / Admin (test@admin.com)
+                          Internal Admin (admin@stockly.internal)
                         </SelectItem>
                         <SelectItem
                           value="guest-supplier"
                           className="cursor-pointer text-gray-900 dark:text-white focus:bg-sky-100 dark:focus:bg-white/10 focus:text-gray-900 dark:focus:text-white"
                         >
-                          Supplier (test@supplier.com)
+                          Internal Supplier (supplier@stockly.internal)
                         </SelectItem>
                         <SelectItem
                           value="guest-client"
                           className="cursor-pointer text-gray-900 dark:text-white focus:bg-sky-100 dark:focus:bg-white/10 focus:text-gray-900 dark:focus:text-white"
                         >
-                          Client (test@client.com)
+                          Internal Client (client@stockly.internal)
                         </SelectItem>
                         {selectedRole && (
                           <SelectItem

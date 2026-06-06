@@ -151,6 +151,37 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). All other variables in `.env.example` are optional and enable extra features (Stripe, Brevo, etc.).
 
+### Internal Ubuntu WAS01/DB01 Lab
+
+For the team infrastructure lab, deploy the app on WAS01 and MongoDB on DB01:
+
+```text
+Internet -> pfSense -> DMZ/WEB01 Nginx -> Internal Server Zone/WAS01 -> DB01 MongoDB
+```
+
+Use the internal lab template and setup guide:
+
+```bash
+cp .env.db01.example .env
+# Edit .env: set <WAS01_IP>, <DB01_IP>, DB password, and JWT_SECRET
+npm install
+npx prisma db push
+npm run seed:internal-demo
+npm run build
+npm run start
+```
+
+Default internal lab accounts after seeding:
+
+```text
+admin@stockly.internal    / 12345678
+client@stockly.internal   / 12345678
+supplier@stockly.internal / 12345678
+```
+
+See [docs/DB01_MONGODB_SETUP.md](docs/DB01_MONGODB_SETUP.md) for MongoDB, pfSense, and WAS01 details.
+
+
 Default scripts:
 
 | Script | Command         | Description                        |

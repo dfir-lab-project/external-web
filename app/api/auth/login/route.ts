@@ -78,10 +78,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine if connection is secure
-    const isSecure =
-      request.headers.get("x-forwarded-proto") === "https" ||
-      process.env.NODE_ENV !== "development";
+    // Use Secure cookies only when the browser reaches the app over HTTPS.
+    // Internal lab access often uses http://<vm-ip>:3000, where Secure cookies
+    // are ignored by browsers and make successful logins look like failures.
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const requestProto = request.nextUrl.protocol.replace(":", "");
+    const isSecure = forwardedProto === "https" || requestProto === "https";
 
     // Role for access control; existing users without role default to "user"
     const userRole = user.role ?? "user";

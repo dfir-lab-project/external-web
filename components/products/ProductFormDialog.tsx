@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useActionState, useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,12 +22,15 @@ import {
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useProductStore } from "@/stores";
+import { useCategories, useSuppliers } from "@/hooks/queries";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { invalidateAllRelatedQueries } from "@/lib/react-query";
 import {
-  useCreateProduct,
-  useUpdateProduct,
-  useCategories,
-  useSuppliers,
-} from "@/hooks/queries";
+  createProductFormAction,
+  updateProductFormAction,
+  type ProductFormActionState,
+} from "@/app/actions/products";
 import { logger } from "@/lib/logger";
 import ProductName from "./form-fields/NameField";
 import SKU from "./form-fields/SKUField";
@@ -36,11 +39,7 @@ import Price from "./form-fields/PriceField";
 import ImageField from "./form-fields/ImageField";
 import ExpirationDateField from "./form-fields/ExpirationDateField";
 import { Product } from "@/types";
-import {
-  productSchema,
-  calculateProductStatus,
-  type ProductFormData,
-} from "@/lib/validations";
+import { productSchema, type ProductFormData } from "@/lib/validations";
 import { DeferredSelectGate } from "@/components/shared";
 
 interface AddProductDialogProps {
@@ -48,6 +47,8 @@ interface AddProductDialogProps {
   userId: string;
   children?: React.ReactNode;
 }
+
+const initialProductFormActionState: ProductFormActionState = { status: "idle" };
 
 export default function AddProductDialog({
   allProducts,
@@ -94,9 +95,20 @@ export default function AddProductDialog({
     (supplier) => supplier.status !== false || supplier.id === selectedSupplier
   );
 
-  // Use TanStack Query mutations
-  const createProductMutation = useCreateProduct();
-  const updateProductMutation = useUpdateProduct();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const handledActionStateRef = useRef<ProductFormActionState | null>(null);
+  const [createActionState, createFormAction, isCreatePending] = useActionState(
+    createProductFormAction,
+    initialProductFormActionState,
+  );
+  const [updateActionState, updateFormAction, isUpdatePending] = useActionState(
+    updateProductFormAction,
+    initialProductFormActionState,
+  );
+  const activeActionState = selectedProduct ? updateActionState : createActionState;
+  const activeFormAction = selectedProduct ? updateFormAction : createFormAction;
+  const isSubmitting = isCreatePending || isUpdatePending;
 
   useEffect(() => {
     if (selectedProduct) {
@@ -129,75 +141,34 @@ export default function AddProductDialog({
     }
   }, [selectedProduct, openProductDialog, reset]);
 
-  const onSubmit = async (data: ProductFormData) => {
-    // Convert empty strings to 0 for quantity and price
-    const quantity =
-      typeof data.quantity === "string" && data.quantity === ""
-        ? 0
-        : Number(data.quantity);
-    const price =
-      typeof data.price === "string" && data.price === ""
-        ? 0
-        : Number(data.price);
+  useEffect(() => {
+    if (activeActionState.status === "idle") return;
+    if (handledActionStateRef.current === activeActionState) return;
 
-    // Calculate status - always returns a valid ProductStatus
-    const status = calculateProductStatus(quantity);
+    handledActionStateRef.current = activeActionState;
 
-    // Format expiration date (convert to ISO string or null)
-    const expirationDate =
-      data.expirationDate && data.expirationDate !== ""
-        ? new Date(data.expirationDate).toISOString()
-        : null;
-
-    try {
-      if (!selectedProduct) {
-        // Create new product using TanStack Query mutation
-        await createProductMutation.mutateAsync({
-          name: data.productName,
-          sku: data.sku,
-          price: price,
-          quantity: quantity,
-          status,
-          categoryId: selectedCategory,
-          supplierId: selectedSupplier,
-          userId: userId,
-          imageUrl: data.imageUrl || undefined,
-          imageFileId: data.imageFileId || undefined,
-          expirationDate: expirationDate || undefined,
-        });
-
-        // Close dialog on success (toast is handled by mutation hook)
-        dialogCloseRef.current?.click();
-        setOpenProductDialog(false);
-      } else {
-        // Update existing product using TanStack Query mutation
-        await updateProductMutation.mutateAsync({
-          id: selectedProduct.id,
-          name: data.productName,
-          sku: data.sku,
-          price: price,
-          quantity: quantity,
-          status,
-          categoryId: selectedCategory,
-          supplierId: selectedSupplier,
-          imageUrl: data.imageUrl || undefined,
-          imageFileId: data.imageFileId || undefined,
-          expirationDate: expirationDate,
-        });
-
-        // Close dialog on success (toast is handled by mutation hook)
-        setOpenProductDialog(false);
-      }
-    } catch (error) {
-      // Error toast is handled by the mutation hooks
-      // Just log for debugging
-      logger.error("Product operation error:", error);
+    if (activeActionState.status === "error") {
+      logger.error("Product Server Action error:", activeActionState.error);
+      toast({
+        title: "Error",
+        description: activeActionState.error,
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  // Determine if form is submitting based on mutation states
-  const isSubmitting =
-    createProductMutation.isPending || updateProductMutation.isPending;
+    invalidateAllRelatedQueries(queryClient);
+    toast({
+      title: "Success",
+      description:
+        `Product "${activeActionState.product.name}" ` +
+        (activeActionState.mode === "update" ? "updated" : "created") +
+        " successfully",
+    });
+
+    dialogCloseRef.current?.click();
+    setOpenProductDialog(false);
+  }, [activeActionState, queryClient, setOpenProductDialog, toast]);
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
@@ -234,7 +205,11 @@ export default function AddProductDialog({
         <FormProvider {...methods}>
           {/* react-hook-form handleSubmit passes a ref; rule is for raw refs during render */}
           {/* eslint-disable-next-line react-hooks/refs */}
-          <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <form action={activeFormAction}>
+            <input type="hidden" name="id" value={selectedProduct?.id || ""} />
+            <input type="hidden" name="userId" value={userId} />
+            <input type="hidden" name="categoryId" value={selectedCategory} />
+            <input type="hidden" name="supplierId" value={selectedSupplier} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ProductName />
               <SKU allProducts={allProducts} />
